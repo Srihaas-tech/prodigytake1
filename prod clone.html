@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wizard Math Battle</title>
+  <style>
+    body { font-family: Arial; background:#0b1020; color:#e6e6ff; text-align:center; }
+    .card { background:#141a33; padding:16px; margin:12px auto; width:360px; border-radius:10px; }
+    button { padding:8px 16px; margin:6px; font-size:14px; }
+    .locked { opacity:0.4; }
+    #modal {
+      position:fixed; inset:0; background:rgba(0,0,0,0.7);
+      display:none; align-items:center; justify-content:center;
+    }
+    #modalContent { background:#1c2350; padding:20px; border-radius:12px; width:320px; }
+  </style>
+</head>
+<body>
+
+<h1>🧙 Wizard Battle</h1>
+
+<div class="card">
+  <p>Level: <span id="lvl"></span></p>
+  <p>HP: <span id="hp"></span></p>
+  <p>Gold: <span id="gold"></span></p>
+</div>
+
+<div class="card">
+  <h3 id="enemyName"></h3>
+  <p>Enemy HP: <span id="enemyHp"></span></p>
+</div>
+
+<div class="card">
+  <p id="question"></p>
+  <input id="answer" type="number" />
+  <br>
+  <button onclick="submitAnswer()">Cast Spell</button>
+</div>
+
+<div id="modal">
+  <div id="modalContent">
+    <h3>✨ Members Only</h3>
+    <p>This reward requires membership.</p>
+    <button onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+/* --------- GAME STATE (this is the juicy part) --------- */
+const server = {
+  validateReward(isMember) {
+    return isMember;
+  }
+};
+
+let player = {
+  level: 1,
+  hp: 100,
+  gold: 0,
+  member: false
+};
+
+let enemy = {};
+let currentAnswer = 0;
+
+/* --------- CORE LOOP --------- */
+function newEnemy() {
+  enemy = {
+    name: "Shadow Slime",
+    hp: 30 + player.level * 5
+  };
+  generateQuestion();
+  updateUI();
+}
+
+function generateQuestion() {
+  let a = Math.floor(Math.random()*10)+1;
+  let b = Math.floor(Math.random()*10)+1;
+  currentAnswer = a + b;
+  question.textContent = `What is ${a} + ${b}?`;
+}
+
+function submitAnswer() {
+  if (Number(answer.value) === currentAnswer) {
+    enemy.hp -= 15;
+    if (enemy.hp <= 0) winBattle();
+    else generateQuestion();
+  } else {
+    player.hp -= 10;
+  }
+  answer.value = "";
+  updateUI();
+}
+
+function winBattle() {
+  player.gold += 10;
+
+  // MEMBERSHIP-GATED REWARD
+  if (!server.validateReward(player.member)) {
+    showModal();
+  } else {
+    player.gold += 50;
+  }
+
+  player.level++;
+  newEnemy();
+}
+
+/* --------- UI --------- */
+function updateUI() {
+  lvl.textContent = player.level;
+  hp.textContent = player.hp;
+  gold.textContent = player.gold;
+  enemyName.textContent = enemy.name;
+  enemyHp.textContent = enemy.hp;
+}
+
+function showModal() {
+  modal.style.display = "flex";
+}
+
+function closeModal() {
+  modal.style.display = "none";
+}
+
+/* --------- INIT --------- */
+newEnemy();
+</script>
+
+</body>
+</html>
